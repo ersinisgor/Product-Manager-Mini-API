@@ -109,6 +109,20 @@ namespace Product_Manager_Mini_API
 
                 }
 
+                var productList = new List<Product>();
+                if (newProduct != null)
+                {
+                    productList.Add(newProduct);
+
+                }
+
+
+                var objectToString = JsonSerializer.Serialize(productList);
+
+
+                using var streamWriter = new StreamWriter(filePath);
+                await streamWriter.WriteAsync(objectToString);
+
                 return newProduct;
             });
             app.MapPut("/products/{id}", () => "Update product");
