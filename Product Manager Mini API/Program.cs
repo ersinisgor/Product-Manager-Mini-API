@@ -40,23 +40,31 @@ namespace Product_Manager_Mini_API
 
             app.MapGet("/products", async () =>
             {
-
+                var products = new List<Product>();
                 try
                 {
                     var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source", "products.json");
 
-                    using StreamReader reader = new(filePath);
 
-                    string text = await reader.ReadToEndAsync();
+                    using var streamReader = new StreamReader(filePath);
+                    var json = await streamReader.ReadToEndAsync();
+                    Console.WriteLine($"json: {json}");
 
-                    Console.WriteLine(text);
+                    products = JsonSerializer.Deserialize<List<Product>>(json);
+
+                    foreach (var product in products)
+                    {
+                        Console.WriteLine($"{JsonSerializer.Serialize(product)}");
+                    }
+
+
                 }
                 catch (Exception ex)
                 {
-
+                    Console.WriteLine($"An error occurred: {ex.Message}");
                 }
 
-
+                return products;
             });
 
             app.MapGet("/products/{id}", () => "Get products by id");
