@@ -1,10 +1,21 @@
 
+using System;
+using System.Formats.Asn1;
+using System.IO;
+using System.Text.Json;
+using Product_Manager_Mini_API.Models;
+using Product_Manager_Mini_API.Services;
+
 namespace Product_Manager_Mini_API
 {
     public class Program
     {
         public static void Main(string[] args)
         {
+            //string file = Directory.GetCurrentDirectory();
+            //string filePath = Path.Combine(file, "Data", "products.json");
+            //Console.WriteLine(file);
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -26,8 +37,28 @@ namespace Product_Manager_Mini_API
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-       
-            app.MapGet("/products", () => "Get all products");
+
+            app.MapGet("/products", async () =>
+            {
+
+                try
+                {
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source", "products.json");
+
+                    using StreamReader reader = new(filePath);
+
+                    string text = await reader.ReadToEndAsync();
+
+                    Console.WriteLine(text);
+                }
+                catch (Exception ex)
+                {
+
+                }
+
+
+            });
+
             app.MapGet("/products/{id}", () => "Get products by id");
             app.MapPost("/products/{id}", () => "Create product");
             app.MapPut("/products/{id}", () => "Update product");

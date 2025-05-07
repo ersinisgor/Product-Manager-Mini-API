@@ -1,1 +1,8 @@
-﻿[]
+﻿[
+    {
+        "id": 1,
+        "name": "phone",
+        "price": 2000.50,
+        "category": "electronic"
+    }
+]
