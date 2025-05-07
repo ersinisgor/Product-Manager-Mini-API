@@ -1,10 +1,20 @@
 
+using System;
+using System.Formats.Asn1;
+using System.IO;
+using System.Text.Json;
+using Product_Manager_Mini_API.Models;
+
 namespace Product_Manager_Mini_API
 {
     public class Program
     {
         public static void Main(string[] args)
         {
+            //string file = Directory.GetCurrentDirectory();
+            //string filePath = Path.Combine(file, "Data", "products.json");
+            //Console.WriteLine(file);
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -26,8 +36,64 @@ namespace Product_Manager_Mini_API
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-       
-            app.MapGet("/products", () => "Get all products");
+
+            app.MapGet("/products", async () =>
+            {
+                var products = new List<Product>();
+                try
+                {
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source", "products.json");
+                    if (!File.Exists(filePath))
+                    {
+                        return Results.Problem(
+                        detail: $"File {filePath} does not exist",
+                        statusCode: StatusCodes.Status404NotFound
+                        );
+
+                    }
+
+                    using var streamReader = new StreamReader(filePath);
+                    var json = await streamReader.ReadToEndAsync();
+                    if (json == "[]")
+                    {
+                        return Results.Ok(products);
+                    }
+
+                    products = JsonSerializer.Deserialize<List<Product>>(json) ?? new List<Product>();
+                    if (products.Count <= 0)
+                    {
+                        return Results.Problem(
+                        detail: "Invalid JSON format",
+                        statusCode: StatusCodes.Status400BadRequest
+                        );
+                    }
+
+                }
+                catch (JsonException ex)
+                {
+                    return Results.Problem(
+                        detail: $"Invalid JSON format: {ex.Message}",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+                catch (IOException ex)
+                {
+                    return Results.Problem(
+                        detail: $"File access error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem(
+                        detail: $"Unexpected error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+
+                return Results.Ok(products);
+            });
+
             app.MapGet("/products/{id}", () => "Get products by id");
             app.MapPost("/products/{id}", () => "Create product");
             app.MapPut("/products/{id}", () => "Update product");
