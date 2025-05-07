@@ -4,7 +4,6 @@ using System.Formats.Asn1;
 using System.IO;
 using System.Text.Json;
 using Product_Manager_Mini_API.Models;
-using Product_Manager_Mini_API.Services;
 
 namespace Product_Manager_Mini_API
 {
@@ -44,27 +43,55 @@ namespace Product_Manager_Mini_API
                 try
                 {
                     var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source", "products.json");
+                    if (!File.Exists(filePath))
+                    {
+                        return Results.Problem(
+                        detail: $"File {filePath} does not exist",
+                        statusCode: StatusCodes.Status404NotFound
+                        );
 
+                    }
 
                     using var streamReader = new StreamReader(filePath);
                     var json = await streamReader.ReadToEndAsync();
-                    Console.WriteLine($"json: {json}");
-
-                    products = JsonSerializer.Deserialize<List<Product>>(json);
-
-                    foreach (var product in products)
+                    if (json == "[]")
                     {
-                        Console.WriteLine($"{JsonSerializer.Serialize(product)}");
+                        return Results.Ok(products);
                     }
 
+                    products = JsonSerializer.Deserialize<List<Product>>(json) ?? new List<Product>();
+                    if (products.Count <= 0)
+                    {
+                        return Results.Problem(
+                        detail: "Invalid JSON format",
+                        statusCode: StatusCodes.Status400BadRequest
+                        );
+                    }
 
+                }
+                catch (JsonException ex)
+                {
+                    return Results.Problem(
+                        detail: $"Invalid JSON format: {ex.Message}",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+                catch (IOException ex)
+                {
+                    return Results.Problem(
+                        detail: $"File access error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"An error occurred: {ex.Message}");
+                    return Results.Problem(
+                        detail: $"Unexpected error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
                 }
 
-                return products;
+                return Results.Ok(products);
             });
 
             app.MapGet("/products/{id}", () => "Get products by id");
