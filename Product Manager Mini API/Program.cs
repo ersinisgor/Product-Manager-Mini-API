@@ -95,7 +95,22 @@ namespace Product_Manager_Mini_API
             });
 
             app.MapGet("/products/{id}", () => "Get products by id");
-            app.MapPost("/products/{id}", () => "Create product");
+            app.MapPost("/products", async (Product newProduct) =>
+            {
+                var product = new Product();
+
+                var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source");
+                var filePath = Path.Combine(directoryPath, "products.json");
+
+                if (!File.Exists(filePath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                    using (FileStream fs = new FileStream(filePath, FileMode.CreateNew)) { }
+
+                }
+
+                return newProduct;
+            });
             app.MapPut("/products/{id}", () => "Update product");
             app.MapDelete("/products/{id}", () => "Delete product");
 
