@@ -1,14 +1,14 @@
 ﻿[
     {
-        "Id": 1,
-        "Name": "phone",
-        "Price": 2000.50,
-        "Category": "electronic"
+        "id": 1,
+        "name": "phone",
+        "price": 2000.50,
+        "category": "electronic"
     },
     {
-        "Id": 2,
-        "Name": "tshirt",
-        "Price": 42.90,
-        "Category": "clothes"
+        "id": 2,
+        "name": "tshirt",
+        "price": 42.90,
+        "category": "clothes"
     }
 ]
