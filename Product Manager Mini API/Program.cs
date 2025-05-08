@@ -53,7 +53,7 @@ namespace Product_Manager_Mini_API
                     }
 
                     using var streamReader = new StreamReader(filePath);
-                    var json = await streamReader.ReadToEndAsync();
+                    string json = await streamReader.ReadToEndAsync();
                     if (json == "[]")
                     {
                         return Results.Ok(products);
@@ -97,9 +97,10 @@ namespace Product_Manager_Mini_API
             app.MapGet("/products/{id}", () => "Get products by id");
             app.MapPost("/products", async (Product newProduct) =>
             {
+                
 
-                var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source");
-                var filePath = Path.Combine(directoryPath, "products.json");
+                string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source");
+                string filePath = Path.Combine(directoryPath, "products.json");
 
                 Directory.CreateDirectory(directoryPath);
 
@@ -117,7 +118,7 @@ namespace Product_Manager_Mini_API
 
                 productList.Add(newProduct);
 
-                var objectToString = JsonSerializer.Serialize<List<Product>>(productList, new JsonSerializerOptions { WriteIndented = true });
+                string objectToString = JsonSerializer.Serialize<List<Product>>(productList, new JsonSerializerOptions { WriteIndented = true });
 
                 using var streamWriter = new StreamWriter(filePath);
                 await streamWriter.WriteAsync(objectToString);
