@@ -103,7 +103,21 @@ namespace Product_Manager_Mini_API
                 return Results.Ok(products);
             });
 
-            app.MapGet("/products/{id}", () => "Get products by id");
+            app.MapGet("/products/{id}", async (int id) =>
+            {
+                var products = new List<Product>();
+
+                using var streamReader = new StreamReader(filePath);
+                string json = await streamReader.ReadToEndAsync();
+
+                products = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
+
+                var product = products.FirstOrDefault(p => p.Id == id);
+
+                return Results.Ok(product);
+
+            });
+
             app.MapPost("/products", async (Product newProduct) =>
             {
                 try
