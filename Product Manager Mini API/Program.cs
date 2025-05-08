@@ -103,7 +103,60 @@ namespace Product_Manager_Mini_API
                 return Results.Ok(products);
             });
 
-            app.MapGet("/products/{id}", () => "Get products by id");
+            app.MapGet("/products/{id}", async (int id) =>
+            {
+                var products = new List<Product>();
+                try
+                {
+                    if (!File.Exists(filePath))
+                    {
+                        return Results.Problem(
+                            detail: $"File {filePath} does not exist",
+                            statusCode: StatusCodes.Status404NotFound
+                        );
+                    }
+
+                    using var streamReader = new StreamReader(filePath);
+                    string json = await streamReader.ReadToEndAsync();
+                    if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
+                    {
+                        products = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
+                    }
+
+                    var product = products.FirstOrDefault(p => p.Id == id);
+                    if (product == null)
+                    {
+                        return Results.Problem(
+                            detail: $"Product with ID {id} not found",
+                            statusCode: StatusCodes.Status404NotFound
+                        );
+                    }
+
+                    return Results.Ok(product);
+                }
+                catch (JsonException ex)
+                {
+                    return Results.Problem(
+                        detail: $"Invalid JSON format: {ex.Message}",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+                catch (IOException ex)
+                {
+                    return Results.Problem(
+                        detail: $"File access error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem(
+                        detail: $"Unexpected error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+            });
+
             app.MapPost("/products", async (Product newProduct) =>
             {
                 try
