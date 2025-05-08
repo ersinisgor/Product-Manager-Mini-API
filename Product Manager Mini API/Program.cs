@@ -97,33 +97,32 @@ namespace Product_Manager_Mini_API
             app.MapGet("/products/{id}", () => "Get products by id");
             app.MapPost("/products", async (Product newProduct) =>
             {
-                var product = new Product();
 
                 var directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source");
                 var filePath = Path.Combine(directoryPath, "products.json");
 
-                if (!File.Exists(filePath))
-                {
-                    Directory.CreateDirectory(directoryPath);
-                    using (FileStream fs = new FileStream(filePath, FileMode.CreateNew)) { }
-
-                }
+                Directory.CreateDirectory(directoryPath);
 
                 var productList = new List<Product>();
-                if (newProduct != null)
-                {
-                    productList.Add(newProduct);
 
+                if (File.Exists(filePath))
+                {
+                    using var streamReader = new StreamReader(filePath);
+                    var json = await streamReader.ReadToEndAsync();
+                    if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
+                    {
+                        productList = JsonSerializer.Deserialize<List<Product>>(json) ?? new List<Product>();
+                    }
                 }
 
+                productList.Add(newProduct);
 
-                var objectToString = JsonSerializer.Serialize(productList);
-
+                var objectToString = JsonSerializer.Serialize<List<Product>>(productList, new JsonSerializerOptions { WriteIndented = true });
 
                 using var streamWriter = new StreamWriter(filePath);
                 await streamWriter.WriteAsync(objectToString);
 
-                return newProduct;
+                return Results.Created<Product>("", newProduct);
             });
             app.MapPut("/products/{id}", () => "Update product");
             app.MapDelete("/products/{id}", () => "Delete product");
