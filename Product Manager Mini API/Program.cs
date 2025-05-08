@@ -37,12 +37,21 @@ namespace Product_Manager_Mini_API
 
             app.UseAuthorization();
 
+            var jsonOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNameCaseInsensitive = true
+            };
+
+            string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source");
+            string filePath = Path.Combine(directoryPath, "products.json");
+
             app.MapGet("/products", async () =>
             {
                 var products = new List<Product>();
                 try
                 {
-                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source", "products.json");
+                    filePath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source", "products.json");
                     if (!File.Exists(filePath))
                     {
                         return Results.Problem(
@@ -54,12 +63,12 @@ namespace Product_Manager_Mini_API
 
                     using var streamReader = new StreamReader(filePath);
                     string json = await streamReader.ReadToEndAsync();
-                    if (json == "[]")
+                    if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
                     {
                         return Results.Ok(products);
                     }
 
-                    products = JsonSerializer.Deserialize<List<Product>>(json) ?? new List<Product>();
+                    products = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
                     if (products.Count <= 0)
                     {
                         return Results.Problem(
@@ -97,31 +106,79 @@ namespace Product_Manager_Mini_API
             app.MapGet("/products/{id}", () => "Get products by id");
             app.MapPost("/products", async (Product newProduct) =>
             {
-                
-
-                string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source");
-                string filePath = Path.Combine(directoryPath, "products.json");
-
-                Directory.CreateDirectory(directoryPath);
-
-                var productList = new List<Product>();
-
-                if (File.Exists(filePath))
+                try
                 {
-                    using var streamReader = new StreamReader(filePath);
-                    var json = await streamReader.ReadToEndAsync();
-                    if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
+                    if (newProduct == null)
                     {
-                        productList = JsonSerializer.Deserialize<List<Product>>(json) ?? new List<Product>();
+                        return Results.Problem(
+                            detail: "New product cannot be null.",
+                            statusCode: StatusCodes.Status400BadRequest
+                        );
                     }
+
+                    var invalidProperties = new List<string>();
+
+                    if (newProduct.Id <= 0)
+                        invalidProperties.Add("Id");
+                    if (string.IsNullOrEmpty(newProduct.Name))
+                        invalidProperties.Add("Name");
+                    if (newProduct.Price <= 0)
+                        invalidProperties.Add("Price");
+                    if (string.IsNullOrEmpty(newProduct.Category))
+                        invalidProperties.Add("Category");
+
+                    if (invalidProperties.Any())
+                    {
+                        return Results.Problem(
+                            detail: $"Invalid product data: Missing or invalid properties: {string.Join(", ", invalidProperties)}",
+                            statusCode: StatusCodes.Status400BadRequest
+                        );
+                    }
+
+                    Directory.CreateDirectory(directoryPath);
+
+                    var productList = new List<Product>();
+
+                    if (File.Exists(filePath))
+                    {
+                        using var streamReader = new StreamReader(filePath);
+                        var json = await streamReader.ReadToEndAsync();
+                        if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
+                        {
+                            productList = JsonSerializer.Deserialize<List<Product>>(json) ?? new List<Product>();
+                        }
+                    }
+
+                    productList.Add(newProduct);
+
+                    string objectToString = JsonSerializer.Serialize<List<Product>>(productList, jsonOptions);
+                    Console.WriteLine(objectToString);
+                    using var streamWriter = new StreamWriter(filePath);
+                    await streamWriter.WriteAsync(objectToString);
                 }
-
-                productList.Add(newProduct);
-
-                string objectToString = JsonSerializer.Serialize<List<Product>>(productList, new JsonSerializerOptions { WriteIndented = true });
-
-                using var streamWriter = new StreamWriter(filePath);
-                await streamWriter.WriteAsync(objectToString);
+                catch (JsonException ex)
+                {
+                    return Results.Problem(
+                        detail: $"Invalid JSON format: {ex.Message}",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+                catch (IOException ex)
+                {
+                    Console.WriteLine($"File access error: {ex.Message}");
+                    return Results.Problem(
+                        detail: $"File access error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Unexpected error: {ex.Message}");
+                    return Results.Problem(
+                        detail: $"Unexpected error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
 
                 return Results.Created<Product>("", newProduct);
             });
