@@ -49,7 +49,7 @@ namespace Product_Manager_Mini_API
 
             app.MapGet("/products", async () =>
             {
-                var products = new List<Product>();
+                var productList = new List<Product>();
                 try
                 {
                     filePath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source", "products.json");
@@ -66,11 +66,11 @@ namespace Product_Manager_Mini_API
                     string json = await streamReader.ReadToEndAsync();
                     if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
                     {
-                        return Results.Ok(products);
+                        return Results.Ok(productList);
                     }
 
-                    products = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
-                    if (products.Count <= 0)
+                    productList = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
+                    if (productList.Count <= 0)
                     {
                         return Results.Problem(
                         detail: "Invalid JSON format",
@@ -101,12 +101,12 @@ namespace Product_Manager_Mini_API
                     );
                 }
 
-                return Results.Ok(products);
+                return Results.Ok(productList);
             });
 
             app.MapGet("/products/{id}", async (int id) =>
             {
-                var products = new List<Product>();
+                var productList = new List<Product>();
                 try
                 {
                     if (!File.Exists(filePath))
@@ -121,10 +121,10 @@ namespace Product_Manager_Mini_API
                     string json = await streamReader.ReadToEndAsync();
                     if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
                     {
-                        products = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
+                        productList = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
                     }
 
-                    var product = products.FirstOrDefault(p => p.Id == id);
+                    var product = productList.FirstOrDefault(p => p.Id == id);
                     if (product == null)
                     {
                         return Results.Problem(
@@ -205,9 +205,9 @@ namespace Product_Manager_Mini_API
 
                     productList.Add(newProduct);
 
-                    string objectToString = JsonSerializer.Serialize<List<Product>>(productList, jsonOptions);
+                    string jsonToString = JsonSerializer.Serialize<List<Product>>(productList, jsonOptions);
                     using var streamWriter = new StreamWriter(filePath);
-                    await streamWriter.WriteAsync(objectToString);
+                    await streamWriter.WriteAsync(jsonToString);
                 }
                 catch (JsonException ex)
                 {
@@ -256,18 +256,18 @@ namespace Product_Manager_Mini_API
                         );
                     }
 
-                    var products = new List<Product>();
+                    var productList = new List<Product>();
 
                     using (var streamReader = new StreamReader(filePath))
                     {
                         string json = await streamReader.ReadToEndAsync();
                         if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
                         {
-                            products = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
+                            productList = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
                         }
                     }
 
-                    var product = products.FirstOrDefault(p => p.Id == id);
+                    var product = productList.FirstOrDefault(p => p.Id == id);
                     if (product == null)
                     {
                         return Results.Problem(
@@ -283,11 +283,11 @@ namespace Product_Manager_Mini_API
                     if (!string.IsNullOrEmpty(updateProduct.Category))
                         product.Category = updateProduct.Category;
 
-                    string objectToString = JsonSerializer.Serialize(products, jsonOptions);
+                    string jsonToString = JsonSerializer.Serialize(productList, jsonOptions);
 
                     using (var streamWriter = new StreamWriter(filePath))
                     {
-                        await streamWriter.WriteAsync(objectToString);
+                        await streamWriter.WriteAsync(jsonToString);
                     }
 
                     return Results.Ok(product);
