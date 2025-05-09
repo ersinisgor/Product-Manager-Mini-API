@@ -5,39 +5,12 @@ namespace Product_Manager_Mini_API.Services
 {
     public class ProductService
     {
-        private readonly JsonSerializerOptions _jsonOptions;
-        private readonly string _directoryPath;
-        private readonly string _filePath;
 
-        public ProductService()
+        private readonly IFileService _fileService;
+
+        public ProductService(IFileService fileService)
         {
-            _jsonOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNameCaseInsensitive = true
-            };
-            _directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source");
-            _filePath = Path.Combine(_directoryPath, "products.json");
-        }
-
-        private async Task<List<Product>> ReadProductsJsonAsync()
-        {
-            var productsList = new List<Product>();
-
-            if (!File.Exists(_filePath))
-            {
-                return productsList;
-            }
-
-            using var streamReader = new StreamReader(_filePath);
-            var json = await streamReader.ReadToEndAsync();
-            if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
-            {
-                return productsList;
-            }
-
-            productsList = JsonSerializer.Deserialize<List<Product>>(json, _jsonOptions) ?? new List<Product>();
-            return productsList;
+            _fileService = fileService;
         }
 
 
@@ -45,7 +18,7 @@ namespace Product_Manager_Mini_API.Services
         {
             try
             {
-                var productsList = await ReadProductsJsonAsync();
+                var productsList = await _fileService.ReadProductsJsonAsync();
                 return Results.Ok(productsList);
             }
             catch (JsonException ex)
@@ -76,7 +49,7 @@ namespace Product_Manager_Mini_API.Services
         {
             try
             {
-                var productsList = await ReadProductsJsonAsync();
+                var productsList = await _fileService.ReadProductsJsonAsync();
 
                 var product = productsList.FirstOrDefault(p => p.Id == id);
                 if (product == null)
