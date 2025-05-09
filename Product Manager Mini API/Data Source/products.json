@@ -12,12 +12,6 @@
     "category": "books"
   },
   {
-    "id": 3,
-    "name": "teapot",
-    "price": 13.49,
-    "category": "kitchen"
-  },
-  {
     "id": 4,
     "name": "tshirt",
     "price": 50,
