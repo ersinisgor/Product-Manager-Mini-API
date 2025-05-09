@@ -20,38 +20,33 @@ namespace Product_Manager_Mini_API.Services
             _filePath = Path.Combine(_directoryPath, "products.json");
         }
 
+        public async Task<List<Product>> ReadProductsJsonAsync()
+        {
+            var productsList = new List<Product>();
+
+            if (!File.Exists(_filePath))
+            {
+                return productsList;
+            }
+
+            using var streamReader = new StreamReader(_filePath);
+            var json = await streamReader.ReadToEndAsync();
+            if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
+            {
+                return productsList; 
+            }
+
+            productsList = JsonSerializer.Deserialize<List<Product>>(json, _jsonOptions) ?? new List<Product>();
+            return productsList;
+        }
+
 
         public async Task<IResult> GetAllProductsAsync()
         {
-            var productsList = new List<Product>();
             try
             {
-  
-                if (!File.Exists(_filePath))
-                {
-                    return Results.Problem(
-                    detail: $"File {_filePath} does not exist",
-                    statusCode: StatusCodes.Status404NotFound
-                    );
-
-                }
-
-                using var streamReader = new StreamReader(_filePath);
-                string json = await streamReader.ReadToEndAsync();
-                if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
-                {
-                    return Results.Ok(productsList);
-                }
-
-                productsList = JsonSerializer.Deserialize<List<Product>>(json, _jsonOptions) ?? new List<Product>();
-                if (productsList.Count <= 0)
-                {
-                    return Results.Problem(
-                    detail: "Invalid JSON format",
-                    statusCode: StatusCodes.Status400BadRequest
-                    );
-                }
-
+                var productsList = await ReadProductsJsonAsync();
+                return Results.Ok(productsList);
             }
             catch (JsonException ex)
             {
@@ -75,7 +70,6 @@ namespace Product_Manager_Mini_API.Services
                 );
             }
 
-            return Results.Ok(productsList);
         }
     }
 }
