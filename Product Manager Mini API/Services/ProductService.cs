@@ -23,10 +23,10 @@ namespace Product_Manager_Mini_API.Services
 
         public async Task<IResult> GetAllProductsAsync()
         {
-            var productList = new List<Product>();
+            var productsList = new List<Product>();
             try
             {
-                //filePath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source", "products.json");
+  
                 if (!File.Exists(_filePath))
                 {
                     return Results.Problem(
@@ -40,11 +40,11 @@ namespace Product_Manager_Mini_API.Services
                 string json = await streamReader.ReadToEndAsync();
                 if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
                 {
-                    return Results.Ok(productList);
+                    return Results.Ok(productsList);
                 }
 
-                productList = JsonSerializer.Deserialize<List<Product>>(json, _jsonOptions) ?? new List<Product>();
-                if (productList.Count <= 0)
+                productsList = JsonSerializer.Deserialize<List<Product>>(json, _jsonOptions) ?? new List<Product>();
+                if (productsList.Count <= 0)
                 {
                     return Results.Problem(
                     detail: "Invalid JSON format",
@@ -75,7 +75,7 @@ namespace Product_Manager_Mini_API.Services
                 );
             }
 
-            return Results.Ok(productList);
+            return Results.Ok(productsList);
         }
     }
 }
