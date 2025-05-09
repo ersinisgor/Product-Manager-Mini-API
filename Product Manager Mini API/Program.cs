@@ -3,6 +3,7 @@ using System;
 using System.Formats.Asn1;
 using System.IO;
 using System.Text.Json;
+using Product_Manager_Mini_API.DTOs;
 using Product_Manager_Mini_API.Models;
 
 namespace Product_Manager_Mini_API
@@ -11,9 +12,6 @@ namespace Product_Manager_Mini_API
     {
         public static void Main(string[] args)
         {
-            //string file = Directory.GetCurrentDirectory();
-            //string filePath = Path.Combine(file, "Data", "products.json");
-            //Console.WriteLine(file);
 
             var builder = WebApplication.CreateBuilder(args);
 
@@ -48,7 +46,7 @@ namespace Product_Manager_Mini_API
 
             app.MapGet("/products", async () =>
             {
-                var products = new List<Product>();
+                var productList = new List<Product>();
                 try
                 {
                     filePath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source", "products.json");
@@ -65,11 +63,11 @@ namespace Product_Manager_Mini_API
                     string json = await streamReader.ReadToEndAsync();
                     if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
                     {
-                        return Results.Ok(products);
+                        return Results.Ok(productList);
                     }
 
-                    products = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
-                    if (products.Count <= 0)
+                    productList = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
+                    if (productList.Count <= 0)
                     {
                         return Results.Problem(
                         detail: "Invalid JSON format",
@@ -100,10 +98,63 @@ namespace Product_Manager_Mini_API
                     );
                 }
 
-                return Results.Ok(products);
+                return Results.Ok(productList);
             });
 
-            app.MapGet("/products/{id}", () => "Get products by id");
+            app.MapGet("/products/{id}", async (int id) =>
+            {
+                var productList = new List<Product>();
+                try
+                {
+                    if (!File.Exists(filePath))
+                    {
+                        return Results.Problem(
+                            detail: $"File {filePath} does not exist",
+                            statusCode: StatusCodes.Status404NotFound
+                        );
+                    }
+
+                    using var streamReader = new StreamReader(filePath);
+                    string json = await streamReader.ReadToEndAsync();
+                    if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
+                    {
+                        productList = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
+                    }
+
+                    var product = productList.FirstOrDefault(p => p.Id == id);
+                    if (product == null)
+                    {
+                        return Results.Problem(
+                            detail: $"Product with ID {id} not found",
+                            statusCode: StatusCodes.Status404NotFound
+                        );
+                    }
+
+                    return Results.Ok(product);
+                }
+                catch (JsonException ex)
+                {
+                    return Results.Problem(
+                        detail: $"Invalid JSON format: {ex.Message}",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+                catch (IOException ex)
+                {
+                    return Results.Problem(
+                        detail: $"File access error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem(
+                        detail: $"Unexpected error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+            });
+
             app.MapPost("/products", async (Product newProduct) =>
             {
                 try
@@ -151,10 +202,9 @@ namespace Product_Manager_Mini_API
 
                     productList.Add(newProduct);
 
-                    string objectToString = JsonSerializer.Serialize<List<Product>>(productList, jsonOptions);
-                    Console.WriteLine(objectToString);
+                    string productListJson = JsonSerializer.Serialize<List<Product>>(productList, jsonOptions);
                     using var streamWriter = new StreamWriter(filePath);
-                    await streamWriter.WriteAsync(objectToString);
+                    await streamWriter.WriteAsync(productListJson);
                 }
                 catch (JsonException ex)
                 {
@@ -182,8 +232,153 @@ namespace Product_Manager_Mini_API
 
                 return Results.Created<Product>("", newProduct);
             });
-            app.MapPut("/products/{id}", () => "Update product");
-            app.MapDelete("/products/{id}", () => "Delete product");
+
+            app.MapPut("/products/{id}", async (int id, UpdateProductDTO updateProduct) =>
+            {
+                try
+                {
+                    if (updateProduct == null)
+                    {
+                        return Results.Problem(
+                            detail: "Updated product cannot be null.",
+                            statusCode: StatusCodes.Status400BadRequest
+                        );
+                    }
+
+                    if (!File.Exists(filePath))
+                    {
+                        return Results.Problem(
+                            detail: $"File {filePath} does not exist",
+                            statusCode: StatusCodes.Status404NotFound
+                        );
+                    }
+
+                    var productList = new List<Product>();
+
+                    using (var streamReader = new StreamReader(filePath))
+                    {
+                        string json = await streamReader.ReadToEndAsync();
+                        if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
+                        {
+                            productList = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
+                        }
+                    }
+
+                    var product = productList.FirstOrDefault(p => p.Id == id);
+                    if (product == null)
+                    {
+                        return Results.Problem(
+                            detail: $"Product with ID {id} not found",
+                            statusCode: StatusCodes.Status404NotFound
+                        );
+                    }
+
+                    if (!string.IsNullOrEmpty(updateProduct.Name))
+                        product.Name = updateProduct.Name;
+                    if (updateProduct.Price.HasValue)
+                        product.Price = updateProduct.Price.Value;
+                    if (!string.IsNullOrEmpty(updateProduct.Category))
+                        product.Category = updateProduct.Category;
+
+                    string productListJson = JsonSerializer.Serialize(productList, jsonOptions);
+
+                    using (var streamWriter = new StreamWriter(filePath))
+                    {
+                        await streamWriter.WriteAsync(productListJson);
+                    }
+
+                    return Results.Ok(product);
+                }
+                catch (JsonException ex)
+                {
+                    return Results.Problem(
+                        detail: $"Invalid JSON format: {ex.Message}",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+                catch (IOException ex)
+                {
+                    return Results.Problem(
+                        detail: $"File access error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem(
+                        detail: $"Unexpected error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+            });
+
+            app.MapDelete("/products/{id}", async (int id) =>
+            {
+                try
+                {
+                    
+
+                    if (!File.Exists(filePath))
+                    {
+                        return Results.Problem(
+                            detail: $"File {filePath} does not exist",
+                            statusCode: StatusCodes.Status404NotFound
+                        );
+                    }
+
+                    var productList = new List<Product>();
+
+                    using (var streamReader = new StreamReader(filePath))
+                    {
+                        string json = await streamReader.ReadToEndAsync();
+                        if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
+                        {
+                            productList = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
+                        }
+                    }
+
+                    var product = productList.FirstOrDefault(p => p.Id == id);
+                    if (product == null)
+                    {
+                        return Results.Problem(
+                            detail: $"Product with ID {id} not found",
+                            statusCode: StatusCodes.Status404NotFound
+                        );
+                    }
+
+                    productList.Remove(product);
+
+                    string productListJson = JsonSerializer.Serialize(productList, jsonOptions);
+
+                    using (var streamWriter = new StreamWriter(filePath))
+                    {
+                        await streamWriter.WriteAsync(productListJson);
+                    }
+
+                    return Results.NoContent();
+                }
+                catch (JsonException ex)
+                {
+                    return Results.Problem(
+                        detail: $"Invalid JSON format: {ex.Message}",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+                catch (IOException ex)
+                {
+                    return Results.Problem(
+                        detail: $"File access error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem(
+                        detail: $"Unexpected error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+            });
 
             app.Run();
         }
