@@ -19,8 +19,8 @@
   },
   {
     "id": 4,
-    "name": "short",
-    "price": 33.90,
+    "name": "tshirt",
+    "price": 50,
     "category": "clothes"
   }
 ]
