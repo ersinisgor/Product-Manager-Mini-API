@@ -3,6 +3,7 @@ using System;
 using System.Formats.Asn1;
 using System.IO;
 using System.Text.Json;
+using Product_Manager_Mini_API.DTOs;
 using Product_Manager_Mini_API.Models;
 
 namespace Product_Manager_Mini_API
@@ -205,7 +206,6 @@ namespace Product_Manager_Mini_API
                     productList.Add(newProduct);
 
                     string objectToString = JsonSerializer.Serialize<List<Product>>(productList, jsonOptions);
-                    Console.WriteLine(objectToString);
                     using var streamWriter = new StreamWriter(filePath);
                     await streamWriter.WriteAsync(objectToString);
                 }
@@ -236,11 +236,18 @@ namespace Product_Manager_Mini_API
                 return Results.Created<Product>("", newProduct);
             });
 
-            app.MapPut("/products/{id}", async (int id, Product updateProduct) =>
+            app.MapPut("/products/{id}", async (int id, UpdateProductDTO updateProduct) =>
             {
-                var products = new List<Product>();
                 try
                 {
+                    if (updateProduct == null)
+                    {
+                        return Results.Problem(
+                            detail: "Updated product cannot be null.",
+                            statusCode: StatusCodes.Status400BadRequest
+                        );
+                    }
+
                     if (!File.Exists(filePath))
                     {
                         return Results.Problem(
@@ -249,11 +256,15 @@ namespace Product_Manager_Mini_API
                         );
                     }
 
-                    using var streamReader = new StreamReader(filePath);
-                    string json = await streamReader.ReadToEndAsync();
-                    if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
+                    var products = new List<Product>();
+
+                    using (var streamReader = new StreamReader(filePath))
                     {
-                        products = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
+                        string json = await streamReader.ReadToEndAsync();
+                        if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
+                        {
+                            products = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
+                        }
                     }
 
                     var product = products.FirstOrDefault(p => p.Id == id);
@@ -263,6 +274,20 @@ namespace Product_Manager_Mini_API
                             detail: $"Product with ID {id} not found",
                             statusCode: StatusCodes.Status404NotFound
                         );
+                    }
+
+                    if (!string.IsNullOrEmpty(updateProduct.Name))
+                        product.Name = updateProduct.Name;
+                    if (updateProduct.Price.HasValue)
+                        product.Price = updateProduct.Price.Value;
+                    if (!string.IsNullOrEmpty(updateProduct.Category))
+                        product.Category = updateProduct.Category;
+
+                    string objectToString = JsonSerializer.Serialize(products, jsonOptions);
+
+                    using (var streamWriter = new StreamWriter(filePath))
+                    {
+                        await streamWriter.WriteAsync(objectToString);
                     }
 
                     return Results.Ok(product);
