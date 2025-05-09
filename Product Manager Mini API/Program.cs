@@ -202,9 +202,9 @@ namespace Product_Manager_Mini_API
 
                     productList.Add(newProduct);
 
-                    string jsonToString = JsonSerializer.Serialize<List<Product>>(productList, jsonOptions);
+                    string productListJson = JsonSerializer.Serialize<List<Product>>(productList, jsonOptions);
                     using var streamWriter = new StreamWriter(filePath);
-                    await streamWriter.WriteAsync(jsonToString);
+                    await streamWriter.WriteAsync(productListJson);
                 }
                 catch (JsonException ex)
                 {
@@ -280,11 +280,11 @@ namespace Product_Manager_Mini_API
                     if (!string.IsNullOrEmpty(updateProduct.Category))
                         product.Category = updateProduct.Category;
 
-                    string jsonToString = JsonSerializer.Serialize(productList, jsonOptions);
+                    string productListJson = JsonSerializer.Serialize(productList, jsonOptions);
 
                     using (var streamWriter = new StreamWriter(filePath))
                     {
-                        await streamWriter.WriteAsync(jsonToString);
+                        await streamWriter.WriteAsync(productListJson);
                     }
 
                     return Results.Ok(product);
@@ -312,7 +312,73 @@ namespace Product_Manager_Mini_API
                 }
             });
 
-            app.MapDelete("/products/{id}", () => "Delete product");
+            app.MapDelete("/products/{id}", async (int id) =>
+            {
+                try
+                {
+                    
+
+                    if (!File.Exists(filePath))
+                    {
+                        return Results.Problem(
+                            detail: $"File {filePath} does not exist",
+                            statusCode: StatusCodes.Status404NotFound
+                        );
+                    }
+
+                    var productList = new List<Product>();
+
+                    using (var streamReader = new StreamReader(filePath))
+                    {
+                        string json = await streamReader.ReadToEndAsync();
+                        if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
+                        {
+                            productList = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
+                        }
+                    }
+
+                    var product = productList.FirstOrDefault(p => p.Id == id);
+                    if (product == null)
+                    {
+                        return Results.Problem(
+                            detail: $"Product with ID {id} not found",
+                            statusCode: StatusCodes.Status404NotFound
+                        );
+                    }
+
+                    productList.Remove(product);
+
+                    string productListJson = JsonSerializer.Serialize(productList, jsonOptions);
+
+                    using (var streamWriter = new StreamWriter(filePath))
+                    {
+                        await streamWriter.WriteAsync(productListJson);
+                    }
+
+                    return Results.NoContent();
+                }
+                catch (JsonException ex)
+                {
+                    return Results.Problem(
+                        detail: $"Invalid JSON format: {ex.Message}",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+                catch (IOException ex)
+                {
+                    return Results.Problem(
+                        detail: $"File access error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+                catch (Exception ex)
+                {
+                    return Results.Problem(
+                        detail: $"Unexpected error: {ex.Message}",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+            });
 
             app.Run();
         }
