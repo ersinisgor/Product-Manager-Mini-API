@@ -21,6 +21,8 @@ namespace Product_Manager_Mini_API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // Register services for Dependency Injection
+            builder.Services.AddScoped<IFileService, FileService>();
             builder.Services.AddScoped<ProductService>();
 
             var app = builder.Build();
@@ -45,7 +47,7 @@ namespace Product_Manager_Mini_API
             string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source");
             string filePath = Path.Combine(directoryPath, "products.json");
 
-            app.MapGet("/products", async (ProductService service) => await service.GetAllProductsAsync());
+            app.MapGet("/products", async (ProductService productService) => await productService.GetAllProductsAsync());
 
             app.MapGet("/products/{id}", async (ProductService service, int id) => await service.GetProductByIdAsync(id));
 
