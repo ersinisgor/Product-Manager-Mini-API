@@ -20,7 +20,7 @@ namespace Product_Manager_Mini_API.Services
             _filePath = Path.Combine(_directoryPath, "products.json");
         }
 
-        public async Task<List<Product>> ReadProductsJsonAsync()
+        private async Task<List<Product>> ReadProductsJsonAsync()
         {
             var productsList = new List<Product>();
 
@@ -33,7 +33,7 @@ namespace Product_Manager_Mini_API.Services
             var json = await streamReader.ReadToEndAsync();
             if (string.IsNullOrWhiteSpace(json) || json.Trim() == "[]")
             {
-                return productsList; 
+                return productsList;
             }
 
             productsList = JsonSerializer.Deserialize<List<Product>>(json, _jsonOptions) ?? new List<Product>();
@@ -70,6 +70,46 @@ namespace Product_Manager_Mini_API.Services
                 );
             }
 
+        }
+
+        public async Task<IResult> GetProductByIdAsync(int id)
+        {
+            try
+            {
+                var productsList = await ReadProductsJsonAsync();
+
+                var product = productsList.FirstOrDefault(p => p.Id == id);
+                if (product == null)
+                {
+                    return Results.Problem(
+                        detail: $"Product with ID {id} not found",
+                        statusCode: StatusCodes.Status404NotFound
+                    );
+                }
+
+                return Results.Ok(product);
+            }
+            catch (JsonException ex)
+            {
+                return Results.Problem(
+                    detail: $"Invalid JSON format: {ex.Message}",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+            }
+            catch (IOException ex)
+            {
+                return Results.Problem(
+                    detail: $"File access error: {ex.Message}",
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: $"Unexpected error: {ex.Message}",
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
         }
     }
 }
