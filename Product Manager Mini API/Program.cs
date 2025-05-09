@@ -5,6 +5,7 @@ using System.IO;
 using System.Text.Json;
 using Product_Manager_Mini_API.DTOs;
 using Product_Manager_Mini_API.Models;
+using Product_Manager_Mini_API.Services;
 
 namespace Product_Manager_Mini_API
 {
@@ -17,10 +18,10 @@ namespace Product_Manager_Mini_API
 
             // Add services to the container.
             builder.Services.AddAuthorization();
-
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddScoped<ProductService>();
 
             var app = builder.Build();
 
