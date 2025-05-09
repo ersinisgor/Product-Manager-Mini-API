@@ -12,9 +12,6 @@ namespace Product_Manager_Mini_API
     {
         public static void Main(string[] args)
         {
-            //string file = Directory.GetCurrentDirectory();
-            //string filePath = Path.Combine(file, "Data", "products.json");
-            //Console.WriteLine(file);
 
             var builder = WebApplication.CreateBuilder(args);
 
