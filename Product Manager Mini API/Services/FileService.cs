@@ -6,6 +6,7 @@ namespace Product_Manager_Mini_API.Services
     public interface IFileService
     {
         Task<List<Product>> ReadProductsJsonAsync();
+        Task WriteProductsListToJsonAsync(List<Product> productsList);
     }
 
     public class FileService: IFileService
@@ -43,6 +44,20 @@ namespace Product_Manager_Mini_API.Services
 
             productsList = JsonSerializer.Deserialize<List<Product>>(json, _jsonOptions) ?? new List<Product>();
             return productsList;
+        }
+
+        private async Task EnsureDirectoryExists()
+        {
+            Directory.CreateDirectory(_directoryPath);
+            await Task.CompletedTask;
+        }
+
+        public async Task WriteProductsListToJsonAsync(List<Product> productsList)
+        {
+            await EnsureDirectoryExists();
+            string productListJson = JsonSerializer.Serialize(productsList, _jsonOptions);
+            using var streamWriter = new StreamWriter(_filePath);
+            await streamWriter.WriteAsync(productListJson);
         }
     }
 }
