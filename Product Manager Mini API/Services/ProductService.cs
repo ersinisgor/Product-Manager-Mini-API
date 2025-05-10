@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Product_Manager_Mini_API.DTOs;
 using Product_Manager_Mini_API.Models;
 
 namespace Product_Manager_Mini_API.Services
@@ -61,6 +62,77 @@ namespace Product_Manager_Mini_API.Services
                 }
 
                 return Results.Ok(product);
+            }
+            catch (JsonException ex)
+            {
+                return Results.Problem(
+                    detail: $"Invalid JSON format: {ex.Message}",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+            }
+            catch (IOException ex)
+            {
+                return Results.Problem(
+                    detail: $"File access error: {ex.Message}",
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: $"Unexpected error: {ex.Message}",
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+        }
+
+        public async Task<IResult> CreateProductAsync(CreateProductDTO newProduct)
+        {
+            try
+            {
+                if (newProduct == null)
+                {
+                    return Results.Problem(
+                        detail: "New product cannot be null.",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+
+                var invalidProperties = new List<string>();
+
+               
+                if (string.IsNullOrEmpty(newProduct.Name))
+                    invalidProperties.Add("Name");
+                if (newProduct.Price <= 0)
+                    invalidProperties.Add("Price");
+                if (string.IsNullOrEmpty(newProduct.Category))
+                    invalidProperties.Add("Category");
+
+                if (invalidProperties.Any())
+                {
+                    return Results.Problem(
+                        detail: $"Invalid product data: Missing or invalid properties: {string.Join(", ", invalidProperties)}",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+
+
+                var productsList = await _fileService.ReadProductsJsonAsync();
+                int newId = productsList.Any() ? productsList.Max(p => p.Id) + 1 : 1;
+
+                var product = new Product
+                {
+                    Id = newId,
+                    Name = newProduct.Name,
+                    Price = newProduct.Price,
+                    Category = newProduct.Category
+                };
+
+
+                productsList.Add(product);
+                await _fileService.WriteProductsListToJsonAsync(productsList);
+
+                return Results.Created($"/products/{product.Id}", product);
             }
             catch (JsonException ex)
             {
