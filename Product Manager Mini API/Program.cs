@@ -18,7 +18,7 @@ namespace Product_Manager_Mini_API
 
             // Register services for Dependency Injection
             builder.Services.AddScoped<IFileService, FileService>();
-            builder.Services.AddScoped<ProductService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
 
             var app = builder.Build();
 
@@ -33,18 +33,18 @@ namespace Product_Manager_Mini_API
 
             app.UseAuthorization();
 
-            app.MapGet("/products", async (ProductService productService) => await productService.GetAllProductsAsync());
+            app.MapGet("/products", async (IProductService productService) => await productService.GetAllProductsAsync());
 
-            app.MapGet("/products/{id}", async (int id, ProductService productService) =>
+            app.MapGet("/products/{id}", async (int id, IProductService productService) =>
                 await productService.GetProductByIdAsync(id));
 
-            app.MapPost("/products", async (ProductService productService, CreateProductDTO newProduct) =>
+            app.MapPost("/products", async (IProductService productService, CreateProductDTO newProduct) =>
                 await productService.CreateProductAsync(newProduct));
 
-            app.MapPut("/products/{id}", async (int id, UpdateProductDTO updateProduct, ProductService productService) =>
+            app.MapPut("/products/{id}", async (int id, UpdateProductDTO updateProduct, IProductService productService) =>
                 await productService.UpdateProductAsync(id, updateProduct));
 
-            app.MapDelete("/products/{id}", async (int id, ProductService productService) =>
+            app.MapDelete("/products/{id}", async (int id, IProductService productService) =>
                 await productService.DeleteProductAsync(id));
 
             app.Run();
