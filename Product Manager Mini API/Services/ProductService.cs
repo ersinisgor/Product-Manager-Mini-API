@@ -14,7 +14,6 @@ namespace Product_Manager_Mini_API.Services
             _fileService = fileService;
         }
 
-
         public async Task<IResult> GetAllProductsAsync()
         {
             try
@@ -43,7 +42,6 @@ namespace Product_Manager_Mini_API.Services
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }
-
         }
 
         public async Task<IResult> GetProductByIdAsync(int id)
@@ -103,7 +101,6 @@ namespace Product_Manager_Mini_API.Services
 
                 var invalidProperties = new List<string>();
 
-
                 if (string.IsNullOrEmpty(newProduct.Name))
                     invalidProperties.Add("Name");
                 if (newProduct.Price <= 0)
@@ -119,8 +116,8 @@ namespace Product_Manager_Mini_API.Services
                     );
                 }
 
-
                 var productsList = await _fileService.ReadProductsJsonAsync();
+
                 int newId = productsList.Any() ? productsList.Max(p => p.Id) + 1 : 1;
 
                 var product = new Product
@@ -131,8 +128,8 @@ namespace Product_Manager_Mini_API.Services
                     Category = newProduct.Category
                 };
 
-
                 productsList.Add(product);
+
                 await _fileService.WriteProductsListToJsonAsync(productsList);
 
                 return Results.Created($"/products/{product.Id}", product);
