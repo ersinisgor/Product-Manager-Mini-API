@@ -51,93 +51,15 @@ namespace Product_Manager_Mini_API
 
             app.MapGet("/products/{id}", async (ProductService productService, int id) => await productService.GetProductByIdAsync(id));
 
-            app.MapPost("/products", async (ProductService productService, CreateProductDTO newProduct) =>
-            await productService.CreateProductAsync(newProduct));
+            app.MapPost("/products", async (ProductService productService, CreateProductDTO newProduct) => await productService.CreateProductAsync(newProduct));
 
-            app.MapPut("/products/{id}", async (int id, UpdateProductDTO updateProduct) =>
-            {
-                try
-                {
-                    if (updateProduct == null)
-                    {
-                        return Results.Problem(
-                            detail: "Updated product cannot be null.",
-                            statusCode: StatusCodes.Status400BadRequest
-                        );
-                    }
-
-                    if (!File.Exists(filePath))
-                    {
-                        return Results.Problem(
-                            detail: $"File {filePath} does not exist",
-                            statusCode: StatusCodes.Status404NotFound
-                        );
-                    }
-
-                    var productList = new List<Product>();
-
-                    using (var streamReader = new StreamReader(filePath))
-                    {
-                        string json = await streamReader.ReadToEndAsync();
-                        if (!string.IsNullOrWhiteSpace(json) && json.Trim() != "[]")
-                        {
-                            productList = JsonSerializer.Deserialize<List<Product>>(json, jsonOptions) ?? new List<Product>();
-                        }
-                    }
-
-                    var product = productList.FirstOrDefault(p => p.Id == id);
-                    if (product == null)
-                    {
-                        return Results.Problem(
-                            detail: $"Product with ID {id} not found",
-                            statusCode: StatusCodes.Status404NotFound
-                        );
-                    }
-
-                    if (!string.IsNullOrEmpty(updateProduct.Name))
-                        product.Name = updateProduct.Name;
-                    if (updateProduct.Price.HasValue)
-                        product.Price = updateProduct.Price.Value;
-                    if (!string.IsNullOrEmpty(updateProduct.Category))
-                        product.Category = updateProduct.Category;
-
-                    string productListJson = JsonSerializer.Serialize(productList, jsonOptions);
-
-                    using (var streamWriter = new StreamWriter(filePath))
-                    {
-                        await streamWriter.WriteAsync(productListJson);
-                    }
-
-                    return Results.Ok(product);
-                }
-                catch (JsonException ex)
-                {
-                    return Results.Problem(
-                        detail: $"Invalid JSON format: {ex.Message}",
-                        statusCode: StatusCodes.Status400BadRequest
-                    );
-                }
-                catch (IOException ex)
-                {
-                    return Results.Problem(
-                        detail: $"File access error: {ex.Message}",
-                        statusCode: StatusCodes.Status500InternalServerError
-                    );
-                }
-                catch (Exception ex)
-                {
-                    return Results.Problem(
-                        detail: $"Unexpected error: {ex.Message}",
-                        statusCode: StatusCodes.Status500InternalServerError
-                    );
-                }
-            });
+            app.MapPut("/products/{id}", async (int id, UpdateProductDTO updateProduct, ProductService productService) => await productService.UpdateProductAsync(id, updateProduct));
 
             app.MapDelete("/products/{id}", async (int id) =>
             {
                 try
                 {
-                    
+
 
                     if (!File.Exists(filePath))
                     {

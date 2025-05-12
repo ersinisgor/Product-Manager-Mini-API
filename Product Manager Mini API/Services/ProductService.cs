@@ -156,5 +156,62 @@ namespace Product_Manager_Mini_API.Services
                 );
             }
         }
+
+        public async Task<IResult> UpdateProductAsync(int id, UpdateProductDTO updateProductDTO)
+        {
+            try
+            {
+                if (updateProductDTO == null)
+                {
+                    return Results.Problem(
+                        detail: "Updated product cannot be null.",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+
+                var productsList = await _fileService.ReadProductsJsonAsync();
+
+                var product = productsList.FirstOrDefault(p => p.Id == id);
+                if (product == null)
+                {
+                    return Results.Problem(
+                        detail: $"Product with ID {id} not found",
+                        statusCode: StatusCodes.Status404NotFound
+                    );
+                }
+
+                if (!string.IsNullOrEmpty(updateProductDTO.Name))
+                    product.Name = updateProductDTO.Name;
+                if (updateProductDTO.Price.HasValue)
+                    product.Price = updateProductDTO.Price.Value;
+                if (!string.IsNullOrEmpty(updateProductDTO.Category))
+                    product.Category = updateProductDTO.Category;
+
+                await _fileService.WriteProductsListToJsonAsync(productsList);
+
+                return Results.Ok(product);
+            }
+            catch (JsonException ex)
+            {
+                return Results.Problem(
+                    detail: $"Invalid JSON format: {ex.Message}",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+            }
+            catch (IOException ex)
+            {
+                return Results.Problem(
+                    detail: $"File access error: {ex.Message}",
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: $"Unexpected error: {ex.Message}",
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+        }
     }
 }
