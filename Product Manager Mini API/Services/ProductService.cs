@@ -73,7 +73,7 @@ namespace Product_Manager_Mini_API.Services
                     );
                 }
 
-                var product = await FindProductByIdAsync(id);
+                var (product, _) = await RetrieveProductWithProductsListAsync(id);
                 if (product == null)
                 {
                     return Results.Problem(
@@ -121,10 +121,11 @@ namespace Product_Manager_Mini_API.Services
         /// <returns>A tuple containing the product (if found, otherwise null) and the full product list.</returns>
         /// <exception cref="JsonException">If the JSON format is invalid.</exception>
         /// <exception cref="IOException">If there is a file access error.</exception>
-        private async Task<Product?> FindProductByIdAsync(int id)
+        private async Task<(Product?, List<Product>)> RetrieveProductWithProductsListAsync(int id)
         {
             var productsList = await _fileService.ReadProductsJsonAsync();
-            return productsList.FirstOrDefault(p => p.Id == id);
+            var product = productsList.FirstOrDefault(p => p.Id == id);
+            return (product, productsList);
         }
 
         /// <summary>
@@ -246,7 +247,7 @@ namespace Product_Manager_Mini_API.Services
                     );
                 }
 
-                var product = await FindProductByIdAsync(id);
+                var (product, productsList) = await RetrieveProductWithProductsListAsync(id);
                 if (product == null)
                 {
                     return Results.Problem(
@@ -257,7 +258,6 @@ namespace Product_Manager_Mini_API.Services
                     );
                 }
 
-                var productsList = await _fileService.ReadProductsJsonAsync();
                 var invalidProperties = new List<string>();
 
                 if (updateProductDTO.Name != null)
@@ -361,7 +361,7 @@ namespace Product_Manager_Mini_API.Services
                     );
                 }
 
-                var product = await FindProductByIdAsync(id);
+                var (product, productsList) = await RetrieveProductWithProductsListAsync(id);
                 if (product == null)
                 {
                     return Results.Problem(
@@ -372,7 +372,6 @@ namespace Product_Manager_Mini_API.Services
                     );
                 }
 
-                var productsList = await _fileService.ReadProductsJsonAsync();
                 productsList.Remove(product);
 
                 await _fileService.WriteProductsListToJsonAsync(productsList);
