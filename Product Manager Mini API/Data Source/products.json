@@ -4,11 +4,5 @@
     "name": "phone",
     "price": 2000,
     "category": "electronics"
-  },
-  {
-    "id": 2,
-    "name": "tshirt",
-    "price": 50,
-    "category": "clothes"
   }
 ]

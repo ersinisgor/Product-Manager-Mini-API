@@ -213,5 +213,50 @@ namespace Product_Manager_Mini_API.Services
                 );
             }
         }
+
+        public async Task<IResult> DeleteProductAsync(int id)
+        {
+            try
+            {
+
+                var productsList = await _fileService.ReadProductsJsonAsync();
+
+                var product = productsList.FirstOrDefault(p => p.Id == id);
+                if (product == null)
+                {
+                    return Results.Problem(
+                        detail: $"Product with ID {id} not found",
+                        statusCode: StatusCodes.Status404NotFound
+                    );
+                }
+
+                productsList.Remove(product);
+
+                await _fileService.WriteProductsListToJsonAsync(productsList);
+
+                return Results.NoContent();
+            }
+            catch (JsonException ex)
+            {
+                return Results.Problem(
+                    detail: $"Invalid JSON format: {ex.Message}",
+                    statusCode: StatusCodes.Status400BadRequest
+                );
+            }
+            catch (IOException ex)
+            {
+                return Results.Problem(
+                    detail: $"File access error: {ex.Message}",
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(
+                    detail: $"Unexpected error: {ex.Message}",
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+        }
     }
 }
