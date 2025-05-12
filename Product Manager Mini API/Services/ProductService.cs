@@ -50,9 +50,7 @@ namespace Product_Manager_Mini_API.Services
         {
             try
             {
-                var productsList = await _fileService.ReadProductsJsonAsync();
-
-                var product = productsList.FirstOrDefault(p => p.Id == id);
+                var product = await FindProductByIdAsync(id);
                 if (product == null)
                 {
                     return Results.Problem(
@@ -60,7 +58,6 @@ namespace Product_Manager_Mini_API.Services
                         statusCode: StatusCodes.Status404NotFound
                     );
                 }
-
                 return Results.Ok(product);
             }
             catch (JsonException ex)
@@ -86,6 +83,12 @@ namespace Product_Manager_Mini_API.Services
             }
         }
 
+        private async Task<Product?> FindProductByIdAsync(int id)
+        {
+            var productsList = await _fileService.ReadProductsJsonAsync();
+            return productsList.FirstOrDefault(p => p.Id == id);
+        }
+
         public async Task<IResult> CreateProductAsync(CreateProductDTO newProduct)
         {
             try
@@ -100,7 +103,7 @@ namespace Product_Manager_Mini_API.Services
 
                 var invalidProperties = new List<string>();
 
-               
+
                 if (string.IsNullOrEmpty(newProduct.Name))
                     invalidProperties.Add("Name");
                 if (newProduct.Price <= 0)
@@ -169,9 +172,7 @@ namespace Product_Manager_Mini_API.Services
                     );
                 }
 
-                var productsList = await _fileService.ReadProductsJsonAsync();
-
-                var product = productsList.FirstOrDefault(p => p.Id == id);
+                var product = await FindProductByIdAsync(id);
                 if (product == null)
                 {
                     return Results.Problem(
@@ -179,6 +180,8 @@ namespace Product_Manager_Mini_API.Services
                         statusCode: StatusCodes.Status404NotFound
                     );
                 }
+
+                var productsList = await _fileService.ReadProductsJsonAsync();
 
                 if (!string.IsNullOrEmpty(updateProductDTO.Name))
                     product.Name = updateProductDTO.Name;
@@ -218,10 +221,7 @@ namespace Product_Manager_Mini_API.Services
         {
             try
             {
-
-                var productsList = await _fileService.ReadProductsJsonAsync();
-
-                var product = productsList.FirstOrDefault(p => p.Id == id);
+                var product = await FindProductByIdAsync(id);
                 if (product == null)
                 {
                     return Results.Problem(
@@ -230,6 +230,7 @@ namespace Product_Manager_Mini_API.Services
                     );
                 }
 
+                var productsList = await _fileService.ReadProductsJsonAsync();
                 productsList.Remove(product);
 
                 await _fileService.WriteProductsListToJsonAsync(productsList);

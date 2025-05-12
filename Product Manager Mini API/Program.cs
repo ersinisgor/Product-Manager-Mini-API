@@ -1,10 +1,6 @@
 
-using System;
-using System.Formats.Asn1;
-using System.IO;
 using System.Text.Json;
 using Product_Manager_Mini_API.DTOs;
-using Product_Manager_Mini_API.Models;
 using Product_Manager_Mini_API.Services;
 
 namespace Product_Manager_Mini_API
@@ -44,18 +40,19 @@ namespace Product_Manager_Mini_API
                 PropertyNameCaseInsensitive = true
             };
 
-            string directoryPath = Path.Combine(Directory.GetCurrentDirectory(), "Data Source");
-            string filePath = Path.Combine(directoryPath, "products.json");
-
             app.MapGet("/products", async (ProductService productService) => await productService.GetAllProductsAsync());
 
-            app.MapGet("/products/{id}", async (ProductService productService, int id) => await productService.GetProductByIdAsync(id));
+            app.MapGet("/products/{id}", async (ProductService productService, int id) => 
+                await productService.GetProductByIdAsync(id));
 
-            app.MapPost("/products", async (ProductService productService, CreateProductDTO newProduct) => await productService.CreateProductAsync(newProduct));
+            app.MapPost("/products", async (ProductService productService, CreateProductDTO newProduct) => 
+                await productService.CreateProductAsync(newProduct));
 
-            app.MapPut("/products/{id}", async (ProductService productService, int id, UpdateProductDTO updateProduct) => await productService.UpdateProductAsync(id, updateProduct));
+            app.MapPut("/products/{id}", async (ProductService productService, int id, UpdateProductDTO updateProduct) => 
+                await productService.UpdateProductAsync(id, updateProduct));
 
-            app.MapDelete("/products/{id}", async (ProductService productService, int id) => await productService.DeleteProductAsync(id));
+            app.MapDelete("/products/{id}", async (ProductService productService, int id) => 
+                await productService.DeleteProductAsync(id));
 
             app.Run();
         }
