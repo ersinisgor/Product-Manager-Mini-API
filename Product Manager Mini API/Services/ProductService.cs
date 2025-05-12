@@ -68,7 +68,7 @@ namespace Product_Manager_Mini_API.Services
                     return Results.Problem(
                         detail: "Product ID must be greater than zero.",
                         title: "Bad Request",
-                        type: "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                        type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.1",
                         statusCode: StatusCodes.Status400BadRequest
                     );
                 }
@@ -148,17 +148,21 @@ namespace Product_Manager_Mini_API.Services
 
                 var invalidProperties = new List<string>();
 
-                if (string.IsNullOrEmpty(newProduct.Name))
+                if (string.IsNullOrWhiteSpace(newProduct.Name))
                     invalidProperties.Add("Name");
+                if (newProduct.Name?.Length > 100)
+                    invalidProperties.Add("Name (exceeds 100 characters)");
                 if (newProduct.Price <= 0)
                     invalidProperties.Add("Price");
-                if (string.IsNullOrEmpty(newProduct.Category))
+                if (string.IsNullOrWhiteSpace(newProduct.Category))
                     invalidProperties.Add("Category");
+                if (newProduct.Category?.Length > 50)
+                    invalidProperties.Add("Category (exceeds 50 characters)");
 
                 if (invalidProperties.Any())
                 {
                     return Results.Problem(
-                        detail: $"Invalid product data: Missing or invalid properties: {string.Join(", ", invalidProperties)}",
+                        detail: $"Invalid product data: {string.Join(", ", invalidProperties)}",
                         title: "Bad Request",
                         type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.1",
                         statusCode: StatusCodes.Status400BadRequest
@@ -227,7 +231,7 @@ namespace Product_Manager_Mini_API.Services
                     return Results.Problem(
                         detail: "Product ID must be greater than zero.",
                         title: "Bad Request",
-                        type: "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                        type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.1",
                         statusCode: StatusCodes.Status400BadRequest
                     );
                 }
@@ -254,13 +258,56 @@ namespace Product_Manager_Mini_API.Services
                 }
 
                 var productsList = await _fileService.ReadProductsJsonAsync();
+                var invalidProperties = new List<string>();
 
+                if (updateProductDTO.Name != null)
+                {
+                    if (string.IsNullOrWhiteSpace(updateProductDTO.Name))
+                        invalidProperties.Add("Name (empty or whitespace)");
+                    if (updateProductDTO.Name.Length > 100)
+                        invalidProperties.Add("Name (exceeds 100 characters)");
+                }
+                if (updateProductDTO.Price.HasValue && updateProductDTO.Price <= 0)
+                    invalidProperties.Add("Price (must be greater than zero)");
+                if (updateProductDTO.Category != null)
+                {
+                    if (string.IsNullOrWhiteSpace(updateProductDTO.Category))
+                        invalidProperties.Add("Category (empty or whitespace)");
+                    if (updateProductDTO.Category.Length > 50)
+                        invalidProperties.Add("Category (exceeds 50 characters)");
+                }
+
+                if (invalidProperties.Any())
+                {
+                    return Results.Problem(
+                        detail: $"Invalid product data: {string.Join(", ", invalidProperties)}",
+                        title: "Bad Request",
+                        type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.1",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+
+                bool hasChanges = false;
                 if (!string.IsNullOrEmpty(updateProductDTO.Name))
+                {
                     product.Name = updateProductDTO.Name;
+                    hasChanges = true;
+                }
                 if (updateProductDTO.Price.HasValue)
+                {
                     product.Price = updateProductDTO.Price.Value;
+                    hasChanges = true;
+                }
                 if (!string.IsNullOrEmpty(updateProductDTO.Category))
+                {
                     product.Category = updateProductDTO.Category;
+                    hasChanges = true;
+                }
+
+                if (!hasChanges)
+                {
+                    return Results.Ok(product);
+                }
 
                 await _fileService.WriteProductsListToJsonAsync(productsList);
 
@@ -280,7 +327,7 @@ namespace Product_Manager_Mini_API.Services
                 return Results.Problem(
                     detail: $"File access error: {ex.Message}",
                     title: "Internal Server Error",
-                     type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }
@@ -309,7 +356,7 @@ namespace Product_Manager_Mini_API.Services
                     return Results.Problem(
                         detail: "Product ID must be greater than zero.",
                         title: "Bad Request",
-                        type: "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                        type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.1",
                         statusCode: StatusCodes.Status400BadRequest
                     );
                 }
