@@ -1,5 +1,4 @@
-
-using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Product_Manager_Mini_API.DTOs;
 using Product_Manager_Mini_API.Services;
 
@@ -34,24 +33,18 @@ namespace Product_Manager_Mini_API
 
             app.UseAuthorization();
 
-            var jsonOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNameCaseInsensitive = true
-            };
-
             app.MapGet("/products", async (ProductService productService) => await productService.GetAllProductsAsync());
 
-            app.MapGet("/products/{id}", async (ProductService productService, int id) => 
+            app.MapGet("/products/{id}", async (int id, ProductService productService) =>
                 await productService.GetProductByIdAsync(id));
 
-            app.MapPost("/products", async (ProductService productService, CreateProductDTO newProduct) => 
+            app.MapPost("/products", async (ProductService productService, CreateProductDTO newProduct) =>
                 await productService.CreateProductAsync(newProduct));
 
-            app.MapPut("/products/{id}", async (ProductService productService, int id, UpdateProductDTO updateProduct) => 
+            app.MapPut("/products/{id}", async (int id, UpdateProductDTO updateProduct, ProductService productService) =>
                 await productService.UpdateProductAsync(id, updateProduct));
 
-            app.MapDelete("/products/{id}", async (ProductService productService, int id) => 
+            app.MapDelete("/products/{id}", async (int id, ProductService productService) =>
                 await productService.DeleteProductAsync(id));
 
             app.Run();
