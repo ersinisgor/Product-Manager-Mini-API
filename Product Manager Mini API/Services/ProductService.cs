@@ -6,7 +6,6 @@ namespace Product_Manager_Mini_API.Services
 {
     public class ProductService
     {
-
         private readonly IFileService _fileService;
 
         public ProductService(IFileService fileService)
@@ -14,6 +13,10 @@ namespace Product_Manager_Mini_API.Services
             _fileService = fileService;
         }
 
+        /// <summary>
+        /// Gets all products from the products.json file.
+        /// </summary>
+        /// <returns>An IResult containing the list of products or an error response.</returns>
         public async Task<IResult> GetAllProductsAsync()
         {
             try
@@ -50,6 +53,11 @@ namespace Product_Manager_Mini_API.Services
             }
         }
 
+        /// <summary>
+        /// Gets a product by its ID from the products.json file.
+        /// </summary>
+        /// <param name="id">The ID of the product to retrieve.</param>
+        /// <returns>An IResult containing the product or an error response.</returns>
         public async Task<IResult> GetProductByIdAsync(int id)
         {
             try
@@ -95,12 +103,24 @@ namespace Product_Manager_Mini_API.Services
             }
         }
 
+        /// <summary>
+        /// Finds a product by its ID and returns the product along with the full product list.
+        /// </summary>
+        /// <param name="id">The ID of the product to find.</param>
+        /// <returns>A tuple containing the product (if found, otherwise null) and the full product list.</returns>
+        /// <exception cref="JsonException">If the JSON format is invalid.</exception>
+        /// <exception cref="IOException">If there is a file access error.</exception>
         private async Task<Product?> FindProductByIdAsync(int id)
         {
             var productsList = await _fileService.ReadProductsJsonAsync();
             return productsList.FirstOrDefault(p => p.Id == id);
         }
 
+        /// <summary>
+        /// Creates a new product and adds it to the products.json file.
+        /// </summary>
+        /// <param name="newProduct">The product data to create.</param>
+        /// <returns>An IResult containing the created product or an error response.</returns>
         public async Task<IResult> CreateProductAsync(CreateProductDTO newProduct)
         {
             try
@@ -181,6 +201,12 @@ namespace Product_Manager_Mini_API.Services
             }
         }
 
+        /// <summary>
+        /// Updates an existing product in the products.json file.
+        /// </summary>
+        /// <param name="id">The ID of the product to update.</param>
+        /// <param name="updateProductDTO">The updated product data.</param>
+        /// <returns>An IResult containing the updated product or an error response.</returns>
         public async Task<IResult> UpdateProductAsync(int id, UpdateProductDTO updateProductDTO)
         {
             try
@@ -248,6 +274,11 @@ namespace Product_Manager_Mini_API.Services
             }
         }
 
+        /// <summary>
+        /// Deletes a product from the products.json file.
+        /// </summary>
+        /// <param name="id">The ID of the product to delete.</param>
+        /// <returns>An IResult indicating success or an error response.</returns>
         public async Task<IResult> DeleteProductAsync(int id)
         {
             try
