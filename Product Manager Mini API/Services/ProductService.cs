@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Microsoft.AspNetCore.Http;
+using System.Text.Json;
 using Product_Manager_Mini_API.DTOs;
 using Product_Manager_Mini_API.Models;
 
@@ -62,6 +63,16 @@ namespace Product_Manager_Mini_API.Services
         {
             try
             {
+                if (id <= 0)
+                {
+                    return Results.Problem(
+                        detail: "Product ID must be greater than zero.",
+                        title: "Bad Request",
+                        type: "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+
                 var product = await FindProductByIdAsync(id);
                 if (product == null)
                 {
@@ -211,6 +222,16 @@ namespace Product_Manager_Mini_API.Services
         {
             try
             {
+                if (id <= 0)
+                {
+                    return Results.Problem(
+                        detail: "Product ID must be greater than zero.",
+                        title: "Bad Request",
+                        type: "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+
                 if (updateProductDTO == null)
                 {
                     return Results.Problem(
@@ -259,7 +280,7 @@ namespace Product_Manager_Mini_API.Services
                 return Results.Problem(
                     detail: $"File access error: {ex.Message}",
                     title: "Internal Server Error",
-                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
+                     type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }
@@ -283,6 +304,16 @@ namespace Product_Manager_Mini_API.Services
         {
             try
             {
+                if (id <= 0)
+                {
+                    return Results.Problem(
+                        detail: "Product ID must be greater than zero.",
+                        title: "Bad Request",
+                        type: "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                        statusCode: StatusCodes.Status400BadRequest
+                    );
+                }
+
                 var product = await FindProductByIdAsync(id);
                 if (product == null)
                 {
