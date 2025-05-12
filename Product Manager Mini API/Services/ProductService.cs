@@ -25,6 +25,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"Invalid JSON format: {ex.Message}",
+                    title: "Bad Request",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.1",
                     statusCode: StatusCodes.Status400BadRequest
                 );
             }
@@ -32,6 +34,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"File access error: {ex.Message}",
+                    title: "Internal Server Error",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }
@@ -39,6 +43,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"Unexpected error: {ex.Message}",
+                    title: "Internal Server Error",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }
@@ -53,6 +59,8 @@ namespace Product_Manager_Mini_API.Services
                 {
                     return Results.Problem(
                         detail: $"Product with ID {id} not found",
+                        title: "Not Found",
+                        type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.4",
                         statusCode: StatusCodes.Status404NotFound
                     );
                 }
@@ -62,6 +70,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"Invalid JSON format: {ex.Message}",
+                    title: "Bad Request",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.1",
                     statusCode: StatusCodes.Status400BadRequest
                 );
             }
@@ -69,6 +79,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"File access error: {ex.Message}",
+                    title: "Internal Server Error",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }
@@ -76,6 +88,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"Unexpected error: {ex.Message}",
+                    title: "Internal Server Error",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }
@@ -95,6 +109,8 @@ namespace Product_Manager_Mini_API.Services
                 {
                     return Results.Problem(
                         detail: "New product cannot be null.",
+                        title: "Bad Request",
+                        type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.1",
                         statusCode: StatusCodes.Status400BadRequest
                     );
                 }
@@ -112,6 +128,8 @@ namespace Product_Manager_Mini_API.Services
                 {
                     return Results.Problem(
                         detail: $"Invalid product data: Missing or invalid properties: {string.Join(", ", invalidProperties)}",
+                        title: "Bad Request",
+                        type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.1",
                         statusCode: StatusCodes.Status400BadRequest
                     );
                 }
@@ -138,6 +156,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"Invalid JSON format: {ex.Message}",
+                    title: "Bad Request",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.1",
                     statusCode: StatusCodes.Status400BadRequest
                 );
             }
@@ -145,6 +165,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"File access error: {ex.Message}",
+                    title: "Internal Server Error",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }
@@ -152,6 +174,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"Unexpected error: {ex.Message}",
+                    title: "Internal Server Error",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }
@@ -165,6 +189,8 @@ namespace Product_Manager_Mini_API.Services
                 {
                     return Results.Problem(
                         detail: "Updated product cannot be null.",
+                        title: "Bad Request",
+                        type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.1",
                         statusCode: StatusCodes.Status400BadRequest
                     );
                 }
@@ -174,6 +200,8 @@ namespace Product_Manager_Mini_API.Services
                 {
                     return Results.Problem(
                         detail: $"Product with ID {id} not found",
+                        title: "Not Found",
+                        type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.4",
                         statusCode: StatusCodes.Status404NotFound
                     );
                 }
@@ -195,6 +223,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"Invalid JSON format: {ex.Message}",
+                    title: "Bad Request",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.1",
                     statusCode: StatusCodes.Status400BadRequest
                 );
             }
@@ -202,6 +232,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"File access error: {ex.Message}",
+                    title: "Internal Server Error",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }
@@ -209,6 +241,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"Unexpected error: {ex.Message}",
+                    title: "Internal Server Error",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }
@@ -223,6 +257,8 @@ namespace Product_Manager_Mini_API.Services
                 {
                     return Results.Problem(
                         detail: $"Product with ID {id} not found",
+                        title: "Not Found",
+                        type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.4",
                         statusCode: StatusCodes.Status404NotFound
                     );
                 }
@@ -238,6 +274,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"Invalid JSON format: {ex.Message}",
+                    title: "Bad Request",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.5.1",
                     statusCode: StatusCodes.Status400BadRequest
                 );
             }
@@ -245,6 +283,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"File access error: {ex.Message}",
+                    title: "Internal Server Error",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }
@@ -252,6 +292,8 @@ namespace Product_Manager_Mini_API.Services
             {
                 return Results.Problem(
                     detail: $"Unexpected error: {ex.Message}",
+                    title: "Internal Server Error",
+                    type: "https://datatracker.ietf.org/html/rfc7231#section-6.6.1",
                     statusCode: StatusCodes.Status500InternalServerError
                 );
             }
