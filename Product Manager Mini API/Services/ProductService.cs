@@ -5,7 +5,16 @@ using Product_Manager_Mini_API.Models;
 
 namespace Product_Manager_Mini_API.Services
 {
-    public class ProductService
+    public interface IProductService
+    {
+        Task<IResult> GetAllProductsAsync();
+        Task<IResult> GetProductByIdAsync(int id);
+        Task<IResult> CreateProductAsync(CreateProductDTO newProduct);
+        Task<IResult> UpdateProductAsync(int id, UpdateProductDTO updateProductDTO);
+        Task<IResult> DeleteProductAsync(int id);
+    }
+
+    public class ProductService: IProductService
     {
         private readonly IFileService _fileService;
 
